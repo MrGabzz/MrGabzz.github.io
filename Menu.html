@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Base Unlimited</title>
+    <style>
+        /* Estilização geral da página */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Estilização do título */
+        h1 {
+            font-size: 48px;
+            margin-bottom: 40px;
+        }
+
+        /* Contêiner dos botões */
+        .button-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Estilização dos botões */
+        .button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: #ffffff;
+            transition: background-color 0.3s, transform 0.2s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Efeito de hover nos botões */
+        .button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        /* Efeito de clique nos botões */
+        .button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <h1>Base Unlimited</h1>
+    <div class="button-container">
+        <!-- Botão Multiplayer -->
+        <a href="Multiplayer.html" class="button">Multiplayer</a>
+        
+        <!-- Botão Singleplayer -->
+        <a href="Index.html" class="button">Singleplayer</a>
+    </div>
+</body>
+</html>

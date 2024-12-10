@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Base Unlimited - Multiplayer Versus</title>
+  <!-- Importa a fonte Roboto e os ícones do Material Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Desabilita o zoom em dispositivos móveis -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #restartButton {
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      font-size: 20px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+      font-family: 'Roboto', sans-serif;
+      z-index: 1000;
+    }
+
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #333;
+      padding: 10px;
+      font-size: 20px;
+      border-radius: 5px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: bold;
+      background-color: rgba(255, 255, 255, 0.8);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    #infoContent {
+      pointer-events: auto;
+    }
+
+    #info button {
+      pointer-events: auto;
+    }
+
+    #toggleInfoButton {
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-family: 'Roboto', sans-serif;
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    #toggleInfoButton:hover {
+      background-color: #444;
+    }
+
+    /* Estilos para a barra de tempo */
+    #timeBarContainer {
+      position: relative;
+      width: 200px;
+      height: 20px;
+      background-color: #ddd;
+      border: 1px solid #333;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    #timeBar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background-color: #4caf50; /* Cor verde */
+      border-radius: 10px;
+    }
+
+    #info p {
+      margin: 5px 0;
+    }
+
+    /* Estilos para os botões de som */
+    #soundButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 30px;
+      color: #333;
+      z-index: 1000;
+    }
+
+    #soundButton:hover {
+      color: #555;
+    }
+
+    /* Fundo escurecido */
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 1500;
+    }
+
+    /* Estilos para a seção de controle dos inimigos e upgrades */
+    #enemyControl {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 110px;
+      background-color: #eee;
+      overflow-x: auto;
+      white-space: nowrap;
+      border-top: 2px solid gray;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+
+    #enemyControl .enemy-icon,
+    #enemyControl .upgrade-icon {
+      display: inline-block;
+      width: 80px;
+      height: 100px;
+      margin: 5px;
+      text-align: center;
+      vertical-align: top;
+      cursor: pointer;
+      font-family: 'Roboto', sans-serif;
+      position: relative;
+    }
+
+    #enemyControl .enemy-icon canvas,
+    #enemyControl .upgrade-icon .material-icons {
+      font-size: 60px;
+      margin-top: 5px;
+      color: #333;
+    }
+
+    #enemyControl .enemy-icon span,
+    #enemyControl .upgrade-icon span {
+      display: block;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    #enemyControl .locked {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    #enemyControl .no-energy {
+      opacity: 0.5;
+    }
+
+    #enemyControl .cooldown-overlay {
+      position: absolute;
+      top: 5px;
+      left: 10px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* Estilos para a tela de vitória/derrota */
+    #gameOverScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      flex-direction: column;
+    }
+
+    #gameOverScreen h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    #gameOverScreen button {
+      padding: 10px 20px;
+      font-size: 20px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    #gameOverScreen button:hover {
+      background-color: #444;
+    }
+
+    /* Estilos para a exibição da energia */
+    #energyDisplay {
+      position: absolute;
+      bottom: 120px;
+      right: 10px;
+      font-size: 24px;
+      color: #333;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-family: 'Roboto', sans-serif;
+      z-index: 1000;
+    }
+
+    #energyDisplay .material-icons {
+      vertical-align: middle;
+      font-size: 30px;
+      color: #333;
+    }
+
+    /* Estilos para a tela de preparação */
+    #preparationScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f0f0f0;
+      display: flex;
+      z-index: 2000;
+    }
+
+    .ready-box {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ready-box button {
+      padding: 20px 40px;
+      font-size: 24px;
+      background-color: #ccc;
+      color: #333;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .ready-box.ready button {
+      background-color: #4caf50;
+      color: #fff;
+    }
+
+    .ready-box h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <button id="soundButton">🔊</button>
+  <div id="info">
+    <button id="toggleInfoButton">▲ Ocultar Info</button>
+    <div id="infoContent">
+      <!-- Barra de tempo -->
+      <div id="timeBarContainer">
+        <div id="timeBar"></div>
+      </div>
+      <p>Frequência atual: <span id="spawnInterval">3000</span> ms</p>
+    </div>
+  </div>
+
+  <!-- Exibição da energia -->
+  <div id="energyDisplay"><span class="material-icons">flash_on</span> <span id="energyAmount">10</span></div>
+
+  <!-- Tela de vitória/derrota -->
+  <div id="gameOverScreen">
+    <h1 id="gameOverMessage"></h1>
+    <button id="gameOverRestartButton">Reiniciar</button>
+  </div>
+
+  <!-- Seção de controle dos inimigos e upgrades -->
+  <div id="enemyControl">
+    <!-- Os ícones dos inimigos e upgrades serão adicionados dinamicamente aqui -->
+  </div>
+
+  <!-- Tela de preparação -->
+  <div id="preparationScreen">
+    <div class="ready-box" id="player1Box">
+      <h2>Player 1</h2>
+      <button id="player1ReadyButton">Pronto</button>
+    </div>
+    <div class="ready-box" id="player2Box">
+      <h2>Player 2</h2>
+      <button id="player2ReadyButton">Pronto</button>
+    </div>
+  </div>
+
+  <script>
+    // Configurações gerais
+    const baseSize = 65;
+    let isMuted = false;
+    let isPaused = false;
+    let isGameOver = false;
+    const maxGameTime = 300; // Duração fixa do jogo em segundos
+    let remainingTime = maxGameTime;
+    let gameTime = 0;
+
+    // Configurações da energia
+    let energy = 10; // Energia inicial
+    const maxEnergy = 200;
+
+    // Configurações de energia progressiva
+    const energyGainConfig = [
+      { time: 0, gainPerSecond: 1 },
+      { time: 30, gainPerSecond: 2 },
+      { time: 60, gainPerSecond: 3 },
+      { time: 90, gainPerSecond: 4 },
+      { time: 120, gainPerSecond: 5 },
+      { time: 200, gainPerSecond: 7 },
+      { time: 300, gainPerSecond: 9 },
+      { time: 450, gainPerSecond: 12 },
+    ];
+
+    // Configurações de upgrades
+    let resistanceLevel = 0;
+    let speedLevel = 0;
+    let frequencyLevel = 0;
+
+    const maxResistanceLevel = 5;
+    const maxSpeedLevel = 5;
+    const maxFrequencyLevel = 5;
+
+    const resistanceUpgradeCost = [15, 30, 45, 60, 75];
+    const speedUpgradeCost = [15, 30, 45, 60, 75];
+    const frequencyUpgradeCost = [15, 30, 45, 60, 75];
+
+    let currentResistanceCost = resistanceUpgradeCost[resistanceLevel];
+    let currentSpeedCost = speedUpgradeCost[speedLevel];
+    let currentFrequencyCost = frequencyUpgradeCost[frequencyLevel];
+
+    const ATTRIBUTE_REDUCTION_FACTOR = 0.8;
+    const MIN_RESISTANCE_COST = 5;
+    const MIN_SPEED_COST = 5;
+    const MIN_FREQUENCY_COST = 5;
+
+    // NOVO CÓDIGO: Aumento de custo de círculos por upgrade de atributo
+    const CIRCLE_COST_INCREASE_PERCENT = 0.1; // 10% por upgrade
+
+    // Define conjuntos de cores para cada atributo
+    const resistanceCircles = ['green', 'yellow', 'orange', 'red'];
+    const speedCircles = ['cyan', 'purple'];
+    const frequencyCircles = ['pink', 'blue', 'lightblue'];
+
+    function reduceAttributeCost(attribute, circleEnergyCost) {
+      const reduction = circleEnergyCost * ATTRIBUTE_REDUCTION_FACTOR;
+      if (attribute === 'resistance') {
+        currentResistanceCost = Math.max(currentResistanceCost - reduction, MIN_RESISTANCE_COST);
+      } else if (attribute === 'speed') {
+        currentSpeedCost = Math.max(currentSpeedCost - reduction, MIN_SPEED_COST);
+      } else if (attribute === 'frequency') {
+        currentFrequencyCost = Math.max(currentFrequencyCost - reduction, MIN_FREQUENCY_COST);
+      }
+      updateUpgradeIcons();
+    }
+
+    const speedMultipliers = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]; 
+    const frequencyReductions = [0, 100, 200, 250, 300, 400]; 
+    const cooldownReductions = [0, 0.2, 0.3, 0.4, 0.6, 0.7]; 
+
+    const resistanceConfig = {
+      'green': [1, 2, 3, 4, 5, 6],
+      'pink': [4, 5, 6, 7, 8, 9],
+      'yellow': [3, 4, 5, 6, 7, 8],
+      'lightpink': [1, 2, 3, 4, 5, 6],
+    };
+
+    const colorGradients = {
+      'red': ['red', 'darkred'],
+      'green': ['lime', 'green'],
+      'blue': ['cyan', 'blue'],
+      'yellow': ['yellow', 'goldenrod'],
+      'orange': ['yellow', 'red'],
+      'purple': ['violet', 'indigo'],
+      'pink': ['pink', 'hotpink'],
+      'cyan': ['cyan', 'lightblue'],
+      'lightpink': ['pink', 'hotpink'],
+      'lightblue': ['lightblue', 'deepskyblue'],
+      'black': ['black', 'gray'],
+      'gray': ['gray', 'silver'],
+      'brown': ['saddlebrown', 'brown']
+    };
+
+    const circleConfig = [
+      {
+        color: 'green',
+        size: 25,
+        speed: 0.15,
+        transparency: 1,
+        clicks: () => resistanceConfig['green'][resistanceLevel],
+        points: 10,
+        time: 0,
+        pitchRange: [0.9, 1.1],
+        chance: 0.2,
+        energyCost: 10,
+        originalEnergyCost: 10, 
+        unlockTime: 5,
+        cooldown: 1,
+      },
+      {
+        color: 'pink',
+        size: 40,
+        speed: 0.125,
+        transparency: 1,
+        clicks: () => resistanceConfig['pink'][resistanceLevel],
+        points: 20,
+        time: 60,
+        pitchRange: [0.9, 1.1],
+        chance: 0.15,
+        energyCost: 30,
+        originalEnergyCost: 30,
+        unlockTime: 60,
+        cooldown: 10,
+      },
+      {
+        color: 'yellow',
+        size: 35,
+        speed: 0.1,
+        transparency: 1,
+        clicks: () => resistanceConfig['yellow'][resistanceLevel],
+        points: 20,
+        time: 35,
+        pitchRange: [0.95, 1.15],
+        chance: 0.1,
+        energyCost: 20,
+        originalEnergyCost: 20,
+        unlockTime: 35,
+        cooldown: 4,
+      },
+      {
+        color: 'orange',
+        size: 45,
+        speed: 0.075,
+        transparency: 1,
+        clicks: () => Math.floor(Math.random() * 5) + 8 + resistanceLevel,
+        points: 20,
+        time: 60,
+        pitchRange: [0.85, 1.05],
+        chance: 0.15,
+        energyCost: 30,
+        originalEnergyCost: 30,
+        unlockTime: 60,
+        cooldown: 8,
+      },
+      {
+        color: 'red',
+        size: 55,
+        speed: 0.05,
+        transparency: 1,
+        clicks: 20 + resistanceLevel * 2,
+        points: 20,
+        time: 120,
+        pitchRange: [0.8, 1.0],
+        chance: 0.15,
+        energyCost: 50,
+        originalEnergyCost: 50,
+        unlockTime: 120,
+        cooldown: 15,
+      },
+      {
+        color: 'purple',
+        size: 20,
+        speed: 0.24,
+        transparency: 1,
+        clicks: 1 + resistanceLevel,
+        points: 20,
+        time: 15,
+        pitchRange: [1.1, 1.3],
+        chance: 0.15,
+        energyCost: 15,
+        originalEnergyCost: 15,
+        unlockTime: 15,
+        cooldown: 3,
+      },
+      {
+        color: 'cyan',
+        size: 18,
+        speed: 0.275,
+        transparency: 1,
+        clicks: 2 + resistanceLevel,
+        points: 20,
+        time: 150,
+        pitchRange: [1.15, 1.35],
+        chance: 0.15,
+        energyCost: 30,
+        originalEnergyCost: 30,
+        unlockTime: 150,
+        cooldown: 7,
+      },
+      {
+        color: 'lightblue',
+        size: 30,
+        speed: 0.17,
+        transparency: 0,
+        clicks: 2 + resistanceLevel,
+        points: 15,
+        time: 150,
+        minTransparency: 0,
+        maxTransparency: 1,
+        transparencyDistance: 200,
+        pitchRange: [0.95, 1.15],
+        chance: 0.3,
+        energyCost: 40,
+        originalEnergyCost: 40,
+        unlockTime: 150,
+        cooldown: 9,
+      },
+      {
+        color: 'blue',
+        size: 40,
+        speed: 0.15,
+        transparency: 1,
+        clicks: 3 + resistanceLevel,
+        points: 30,
+        time: 135,
+        speedIncrements: [0.15, 0.2, 0.3],
+        sizeDecrements: [6, 6, 6],
+        minSize: 15,
+        defaultSpeedIncrement: 0.1,
+        defaultSizeDecrement: 7,
+        pitchRange: [0.85, 1.05],
+        chance: 0.2,
+        energyCost: 40,
+        originalEnergyCost: 40,
+        unlockTime: 135,
+        cooldown: 10,
+      },
+      {
+        color: 'gray',
+        size: 40,
+        speed: 0.07,
+        transparency: 1,
+        clicks: 5 + resistanceLevel * 2,
+        points: 50,
+        time: 500,
+        isGrayCircle: true,
+        pushBackDistance: 70,
+        pitchRange: [0.8, 1.0],
+        chance: 0.1,
+        energyCost: 80,
+        originalEnergyCost: 80,
+        unlockTime: 170,
+        cooldown: 20,
+      },
+      {
+        color: 'black',
+        size: 30,
+        speed: 0.1,
+        transparency: 1,
+        clicks: 10 + resistanceLevel * 2,
+        points: 100,
+        time: 500,
+        isBlackCircle: true,
+        pushBackDistance: 70,
+        pitchRange: [0.6, 0.8],
+        chance: 0.05,
+        energyCost: 100,
+        originalEnergyCost: 100,
+        unlockTime: 200,
+        cooldown: 30,
+      },
+      {
+        color: 'lightpink',
+        size: 20,
+        speed: 0.17,
+        transparency: 1,
+        clicks: () => resistanceConfig['lightpink'][resistanceLevel],
+        points: 5,
+        time: 0,
+        pitchRange: [1.0, 1.2],
+        chance: 0,
+        energyCost: 0,
+        originalEnergyCost: 0,
+        unlockTime: 0,
+        cooldown: 0,
+      },
+    ];
+
+    const difficultyLevels = [
+      { time: 0, interval: 3000, circlesAtOnce: 1 },
+      { time: 30, interval: 2900, circlesAtOnce: 1 },
+      { time: 60, interval: 2800, circlesAtOnce: 1 },
+      { time: 90, interval: 2700, circlesAtOnce: 1 },
+      { time: 120, interval: 2600, circlesAtOnce: 1 },
+      { time: 150, interval: 3200, circlesAtOnce: 2 },
+      { time: 180, interval: 3100, circlesAtOnce: 2 },
+      { time: 210, interval: 3000, circlesAtOnce: 2 },
+      { time: 240, interval: 3000, circlesAtOnce: 3 },
+      { time: 295, interval: 1500, circlesAtOnce: 3 },
+    ];
+
+    const powerUpConfig = {
+      starInterval: 150,
+      starDuration: 8,
+      powerUpDuration: 10,
+      redPentagon: {
+        size: 200,
+        transparency: 0.30,
+      },
+      bluePentagon: {
+        size: 200,
+        transparency: 0.30,
+      },
+    };
+
+    let circles = [];
+    let stars = [];
+    let particles = [];
+    let currentSpawnInterval;
+    let currentCirclesAtOnce;
+    let spawnIntervalId;
+    let starSpawnIntervalId;
+    let energyRegenIntervalId;
+    let updateInfoIntervalId;
+    let activeRedPowerUp = false;
+    let activeBluePowerUp = false;
+    let redPowerUpTimeLeft = 0;
+    let bluePowerUpTimeLeft = 0;
+
+    let circleCooldowns = {};
+    let circleUnlocked = {};
+
+    let player1Ready = false;
+    let player2Ready = false;
+
+    let animationFrameId;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const popSoundVolume = 0.3;
+    const victorySoundVolume = 0.5;
+    const restartSoundVolume = 0.5;
+    const clickSoundVolume = 0.4;
+    const powerUpSoundVolume = 0.5;
+    const denialSoundVolume = 0.5;
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const spawnIntervalElement = document.getElementById('spawnInterval');
+    const soundButton = document.getElementById('soundButton');
+    const toggleInfoButton = document.getElementById('toggleInfoButton');
+    const infoContent = document.getElementById('infoContent');
+    const infoElement = document.getElementById('info');
+    const enemyControl = document.getElementById('enemyControl');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const gameOverMessage = document.getElementById('gameOverMessage');
+    const gameOverRestartButton = document.getElementById('gameOverRestartButton');
+    const energyDisplay = document.getElementById('energyAmount');
+    const timeBar = document.getElementById('timeBar');
+
+    const preparationScreen = document.getElementById('preparationScreen');
+    const player1Box = document.getElementById('player1Box');
+    const player2Box = document.getElementById('player2Box');
+    const player1ReadyButton = document.getElementById('player1ReadyButton');
+    const player2ReadyButton = document.getElementById('player2ReadyButton');
+
+    canvas.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+
+    const pentagon = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      size: baseSize,
+      draw() {
+        ctx.save();
+        const gradient = ctx.createLinearGradient(this.x - this.size, this.y - this.size, this.x + this.size, this.y + this.size);
+        const colors = colorGradients['brown'] || ['brown', 'brown'];
+        gradient.addColorStop(0, colors[0]);
+        gradient.addColorStop(1, colors[1]);
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.beginPath();
+        const angle = (2 * Math.PI) / 5;
+        for (let i = 0; i < 5; i++) {
+          const x = this.x + this.size * Math.cos(i * angle - Math.PI / 2);
+          const y = this.y + this.size * Math.sin(i * angle - Math.PI / 2);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px Roboto';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Base', this.x, this.y);
+      },
+    };
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - 110;
+      pentagon.x = canvas.width / 2;
+      pentagon.y = canvas.height / 2;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initAudioContext() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      document.body.removeEventListener('click', initAudioContext);
+    }
+    document.body.addEventListener('click', initAudioContext);
+
+    function playPopSound(pitchRange = [1.0, 1.0]) {
+      if (isMuted) return;
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'sine';
+      const baseFrequency = 600;
+      const randomPitch = Math.random() * (pitchRange[1] - pitchRange[0]) + pitchRange[0];
+      oscillator.frequency.setValueAtTime(baseFrequency * randomPitch, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(popSoundVolume, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function playClickSound() {
+      if (isMuted) return;
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(clickSoundVolume, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playPowerUpSound() {
+      if (isMuted) return;
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(powerUpSoundVolume, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function playRestartSound() {
+      if (isMuted) return;
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(restartSoundVolume, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function playVictorySound() {
+      if (isMuted) return;
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
+      gainNode.gain.setValueAtTime(victorySoundVolume, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.6);
+    }
+
+    function playDenialSound() {
+      if (isMuted) return;
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(denialSoundVolume, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.3);
+    }
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 5 + 2;
+        this.color = color;
+        this.speedX = (Math.random() - 0.5) * 4;
+        this.speedY = (Math.random() - 0.5) * 4;
+        this.gravity = 0;
+        this.life = 30;
+      }
+
+      update() {
+        this.speedY += this.gravity;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.life--;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.life / 20;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    class Circle {
+      constructor(config, x = null, y = null) {
+        this.x = x !== null ? x : (Math.random() > 0.5 ? -config.size : canvas.width + config.size);
+        this.y = y !== null ? y : Math.random() * canvas.height;
+        this.color = config.color;
+        this.size = config.size;
+        this.transparency = config.transparency;
+        this.clicks = typeof config.clicks === "function" ? config.clicks() : config.clicks;
+        this.points = config.points;
+        this.time = config.time;
+        this.hasBeenSlowed = false;
+        this.lastRedClickTime = 0;
+        this.initialClicks = this.clicks;
+        this.pitchRange = config.pitchRange || [1.0, 1.0];
+        this.speed = config.speed * speedMultipliers[speedLevel];
+        this.dx = (pentagon.x - this.x) / 100;
+        this.dy = (pentagon.y - this.y) / 100;
+        this.isGrayCircle = config.isGrayCircle || false;
+        this.isBlackCircle = config.isBlackCircle || false;
+        this.pushBackDistance = config.pushBackDistance || 0;
+
+        if (this.color === 'blue') {
+          this.speedIncrements = config.speedIncrements || [];
+          this.sizeDecrements = config.sizeDecrements || [];
+          this.defaultSpeedIncrement = config.defaultSpeedIncrement || 0.1;
+          this.defaultSizeDecrement = config.defaultSizeDecrement || 5;
+          this.minSize = config.minSize || 10;
+        }
+        if (this.color === 'lightblue') {
+          this.minTransparency = config.minTransparency || 0;
+          this.maxTransparency = config.maxTransparency || 1;
+          this.transparencyDistance = config.transparencyDistance || 100;
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.transparency;
+        const gradient = ctx.createLinearGradient(this.x - this.size, this.y - this.size, this.x + this.size, this.y + this.size);
+        const colors = colorGradients[this.color] || [this.color, this.color];
+        gradient.addColorStop(0, colors[0]);
+        gradient.addColorStop(1, colors[1]);
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.restore();
+
+        if (this.clicks > 0 && !this.isGrayCircle && !this.isBlackCircle) {
+          ctx.font = 'bold 18px Roboto';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#fff';
+          ctx.fillText(this.clicks, this.x, this.y);
+        }
+      }
+
+      update() {
+        this.x += this.dx * this.speed;
+        this.y += this.dy * this.speed;
+
+        if (this.color === 'lightblue') {
+          const distToBase = Math.hypot(this.x - pentagon.x, this.y - pentagon.y);
+          if (distToBase <= this.transparencyDistance) {
+            const transparencyProgress = Math.min((this.transparencyDistance - distToBase) / this.transparencyDistance, 1);
+            this.transparency = this.minTransparency + (this.maxTransparency - this.minTransparency) * transparencyProgress;
+          } else {
+            this.transparency = this.minTransparency;
+          }
+        }
+
+        if (activeRedPowerUp && this.isInsideRedPentagon() && !this.isGrayCircle && !this.isBlackCircle) {
+          if (gameTime > this.lastRedClickTime) {
+            this.clicks -= 1;
+            this.lastRedClickTime = gameTime;
+            if (this.clicks <= 0) {
+              if (this.color === 'pink') {
+                spawnAdjacentCircles(this);
+              }
+              this.destroy();
+            }
+          }
+        }
+
+        if (activeBluePowerUp && this.isInsideBluePentagon() && !this.hasBeenSlowed && !this.isGrayCircle && !this.isBlackCircle) {
+          this.speed *= 0.5;
+          this.hasBeenSlowed = true;
+        }
+
+        if (this.isBlackCircle) {
+          circles.forEach((otherCircle) => {
+            if (otherCircle !== this && !otherCircle.isBlackCircle && !otherCircle.isGrayCircle) {
+              const dist = Math.hypot(this.x - otherCircle.x, this.y - otherCircle.y);
+              if (dist < this.size + otherCircle.size) {
+                this.grow(otherCircle);
+                otherCircle.destroy();
+              }
+            }
+          });
+        }
+
+        if (this.checkCollision()) {
+          gameOver(false);
+        }
+      }
+
+      checkCollision() {
+        const dist = Math.hypot(this.x - pentagon.x, this.y - pentagon.y);
+        return dist < this.size + pentagon.size;
+      }
+
+      handleClick() {
+        if (this.isGrayCircle || this.isBlackCircle) {
+          const angle = Math.atan2(pentagon.y - this.y, pentagon.x - this.x);
+          this.x -= Math.cos(angle) * this.pushBackDistance;
+          this.y -= Math.sin(angle) * this.pushBackDistance;
+          playClickSound();
+        } else {
+          if (this.color === 'blue') {
+            const clicksDone = this.initialClicks - this.clicks;
+            if (Array.isArray(this.speedIncrements) && clicksDone < this.speedIncrements.length) {
+              this.speed += this.speedIncrements[clicksDone];
+            } else {
+              this.speed += this.defaultSpeedIncrement;
+            }
+            if (Array.isArray(this.sizeDecrements) && clicksDone < this.sizeDecrements.length) {
+              this.size -= this.sizeDecrements[clicksDone];
+            } else {
+              this.size -= this.defaultSizeDecrement;
+            }
+            if (this.size < this.minSize) {
+              this.size = this.minSize;
+            }
+          }
+          this.clicks -= 1;
+          if (this.clicks <= 0) {
+            if (this.color === 'pink') {
+              spawnAdjacentCircles(this);
+            }
+            this.destroy();
+          }
+        }
+      }
+
+      grow(otherCircle) {
+        const growth = this.sizeGrowth && this.sizeGrowth[otherCircle.color] ? this.sizeGrowth[otherCircle.color] : 1;
+        this.size += growth;
+      }
+
+      destroy() {
+        if (!this.isGrayCircle && !this.isBlackCircle) {
+          playPopSound(this.pitchRange);
+          for (let i = 0; i < 15; i++) {
+            particles.push(new Particle(this.x, this.y, this.color));
+          }
+          circles = circles.filter((circle) => circle !== this);
+        }
+      }
+
+      isInsideRedPentagon() {
+        const dist = Math.hypot(this.x - pentagon.x, this.y - pentagon.y);
+        return dist < powerUpConfig.redPentagon.size;
+      }
+
+      isInsideBluePentagon() {
+        const dist = Math.hypot(this.x - pentagon.x, this.y - pentagon.y);
+        return dist < powerUpConfig.bluePentagon.size;
+      }
+    }
+
+    function spawnAdjacentCircles(originalCircle) {
+      const lightPinkConfig = circleConfig.find((c) => c.color === 'lightpink');
+      if (!lightPinkConfig) return;
+      const offsets = [-30, 30];
+      offsets.forEach((offset) => {
+        const newCircle = new Circle(lightPinkConfig, originalCircle.x + offset, originalCircle.y);
+        circles.push(newCircle);
+      });
+    }
+
+    class Star {
+      constructor(color) {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = 30;
+        this.color = color;
+        this.spawnTime = remainingTime;
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const x = this.x + this.size * Math.cos((Math.PI * 2 * i) / 5 - Math.PI / 2);
+          const y = this.y + this.size * Math.sin((Math.PI * 2 * i) / 5 - Math.PI / 2);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      handleClick() {
+        playPowerUpSound();
+        if (this.color === 'red') {
+          activateRedPowerUp();
+        } else if (this.color === 'blue') {
+          activateBluePowerUp();
+        }
+        stars = stars.filter((star) => star !== this);
+      }
+    }
+
+    function spawnCircles() {
+      if (isGameOver || isPaused) return;
+      const eligibleConfigs = circleConfig.filter((config) => gameTime >= config.time && config.chance > 0);
+      if (eligibleConfigs.length === 0) return;
+
+      for (let i = 0; i < currentCirclesAtOnce; i++) {
+        const totalChance = eligibleConfigs.reduce((sum, config) => sum + config.chance, 0);
+        let random = Math.random() * totalChance;
+        for (const config of eligibleConfigs) {
+          if (random < config.chance) {
+            const circle = new Circle(config);
+            circles.push(circle);
+            break;
+          } else {
+            random -= config.chance;
+          }
+        }
+      }
+    }
+
+    function spawnStar() {
+      if (isGameOver || isPaused || stars.length > 0) return;
+      const color = Math.random() > 0.5 ? 'red' : 'blue';
+      stars.push(new Star(color));
+      setTimeout(() => {
+        stars = stars.filter((star) => star.color !== color);
+      }, powerUpConfig.starDuration * 1000);
+    }
+
+    function activateRedPowerUp() {
+      activeRedPowerUp = true;
+      redPowerUpTimeLeft = powerUpConfig.powerUpDuration;
+    }
+
+    function activateBluePowerUp() {
+      activeBluePowerUp = true;
+      bluePowerUpTimeLeft = powerUpConfig.powerUpDuration;
+    }
+
+    function updatePowerUps() {
+      if (isPaused) return;
+      if (activeRedPowerUp) {
+        redPowerUpTimeLeft -= 1;
+        if (redPowerUpTimeLeft <= 0) {
+          activeRedPowerUp = false;
+        }
+      }
+      if (activeBluePowerUp) {
+        bluePowerUpTimeLeft -= 1;
+        if (bluePowerUpTimeLeft <= 0) {
+          activeBluePowerUp = false;
+        }
+      }
+    }
+
+    function updateDifficulty() {
+      const applicableLevels = difficultyLevels.filter((level) => gameTime >= level.time);
+      const currentLevel = applicableLevels[applicableLevels.length - 1];
+      const adjustedInterval = Math.max(500, currentLevel.interval - frequencyReductions[frequencyLevel]);
+      if (adjustedInterval !== currentSpawnInterval || currentLevel.circlesAtOnce !== currentCirclesAtOnce) {
+        currentSpawnInterval = adjustedInterval;
+        currentCirclesAtOnce = currentLevel.circlesAtOnce;
+        spawnIntervalElement.textContent = currentSpawnInterval.toString();
+        clearInterval(spawnIntervalId);
+        spawnIntervalId = setInterval(spawnCircles, currentSpawnInterval);
+      }
+    }
+
+    function gameOver(baseDefenderWon) {
+      isGameOver = true;
+      playVictorySound();
+      clearInterval(spawnIntervalId);
+      clearInterval(starSpawnIntervalId);
+      clearInterval(energyRegenIntervalId);
+      clearInterval(updateInfoIntervalId);
+      gameOverScreen.style.display = 'flex';
+      if (baseDefenderWon) {
+        gameOverMessage.textContent = 'Base Defender Venceu!';
+      } else {
+        gameOverMessage.textContent = 'Enemies Venceram!';
+      }
+    }
+
+    // NOVO CÓDIGO: Função para restaurar todos os círculos ao custo original
+    function resetCircleCosts() {
+      circleConfig.forEach((config) => {
+        config.energyCost = config.originalEnergyCost; 
+      });
+    }
+
+    function resetGameVariables() {
+      isGameOver = false;
+      isPaused = false;
+      circles = [];
+      stars = [];
+      particles = [];
+      remainingTime = maxGameTime;
+      gameTime = 0;
+      energy = 10;
+      resistanceLevel = 0;
+      speedLevel = 0;
+      frequencyLevel = 0;
+      circleCooldowns = {};
+      circleUnlocked = {};
+      activeRedPowerUp = false;
+      activeBluePowerUp = false;
+      redPowerUpTimeLeft = 0;
+      bluePowerUpTimeLeft = 0;
+      energyDisplay.textContent = energy.toString();
+
+      // Restaura os custos originais das bolas
+      resetCircleCosts();
+
+      currentResistanceCost = resistanceUpgradeCost[resistanceLevel];
+      currentSpeedCost = speedUpgradeCost[speedLevel];
+      currentFrequencyCost = frequencyUpgradeCost[frequencyLevel];
+
+      updateUpgradeIcons();
+      updateEnemyIcons();
+      clearInterval(spawnIntervalId);
+      clearInterval(starSpawnIntervalId);
+      clearInterval(energyRegenIntervalId);
+      clearInterval(updateInfoIntervalId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      gameOverScreen.style.display = 'none';
+      timeBar.style.width = '100%';
+    }
+
+    function restartGame() {
+      resetGameVariables();
+      showPreparationScreen();
+    }
+
+    function getCurrentEnergyGain() {
+      const applicableGains = energyGainConfig.filter((config) => gameTime >= config.time);
+      const currentGainConfig = applicableGains[applicableGains.length - 1];
+      return currentGainConfig.gainPerSecond;
+    }
+
+    function regenerateEnergy() {
+      if (isGameOver || isPaused) return;
+      const energyGain = getCurrentEnergyGain();
+      energy += energyGain;
+      if (energy > maxEnergy) {
+        energy = maxEnergy;
+      }
+      energyDisplay.textContent = energy.toString();
+    }
+
+    canvas.addEventListener('click', (e) => {
+      if (isPaused || isGameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      stars.forEach((star) => {
+        const dist = Math.hypot(offsetX - star.x, offsetY - star.y);
+        if (dist < star.size) {
+          star.handleClick();
+        }
+      });
+      circles.forEach((circle) => {
+        const dist = Math.hypot(offsetX - circle.x, offsetY - circle.y);
+        if (dist < circle.size) {
+          circle.handleClick();
+        }
+      });
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (isPaused || isGameOver) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        const offsetX = touch.clientX - rect.left;
+        const offsetY = touch.clientY - rect.top;
+        stars.forEach((star) => {
+          const dist = Math.hypot(offsetX - star.x, offsetY - star.y);
+          if (dist < star.size) {
+            star.handleClick();
+          }
+        });
+        circles.forEach((circle) => {
+          const dist = Math.hypot(offsetX - circle.x, offsetY - circle.y);
+          if (dist < circle.size) {
+            circle.handleClick();
+          }
+        });
+      }
+    }, { passive: false });
+
+    gameOverRestartButton.addEventListener('click', () => {
+      playRestartSound();
+      restartGame();
+    });
+
+    soundButton.addEventListener('click', () => {
+      isMuted = !isMuted;
+      soundButton.textContent = isMuted ? '🔇' : '🔊';
+    });
+
+    toggleInfoButton.addEventListener('click', () => {
+      if (infoContent.style.display === 'none') {
+        infoContent.style.display = 'block';
+        toggleInfoButton.textContent = '▲ Ocultar Info';
+      } else {
+        infoContent.style.display = 'none';
+        toggleInfoButton.textContent = '▼ Mostrar Info';
+      }
+    });
+
+    function updateInfo() {
+      if (isGameOver || isPaused) return;
+      remainingTime -= 1;
+      gameTime += 1;
+      const timePercentage = (remainingTime / maxGameTime) * 100;
+      timeBar.style.width = timePercentage + '%';
+      spawnIntervalElement.textContent = currentSpawnInterval.toString();
+      updateDifficulty();
+      updatePowerUps();
+      updateEnemyIcons();
+      updateUpgradeIcons();
+
+      if (remainingTime <= 0) {
+        gameOver(true);
+      }
+    }
+
+    function drawPowerUpPentagons() {
+      if (activeRedPowerUp) {
+        ctx.beginPath();
+        const angle = (2 * Math.PI) / 5;
+        for (let i = 0; i < 5; i++) {
+          const x = pentagon.x + powerUpConfig.redPentagon.size * Math.cos(i * angle - Math.PI / 2);
+          const y = pentagon.y + powerUpConfig.redPentagon.size * Math.sin(i * angle - Math.PI / 2);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255, 0, 0,' + powerUpConfig.redPentagon.transparency + ')';
+        ctx.fill();
+      }
+
+      if (activeBluePowerUp) {
+        ctx.beginPath();
+        const angle = (2 * Math.PI) / 5;
+        for (let i = 0; i < 5; i++) {
+          const x = pentagon.x + powerUpConfig.bluePentagon.size * Math.cos(i * angle - Math.PI / 2);
+          const y = pentagon.y + powerUpConfig.bluePentagon.size * Math.sin(i * angle - Math.PI / 2);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0, 0, 255,' + powerUpConfig.bluePentagon.transparency + ')';
+        ctx.fill();
+      }
+    }
+
+    function animate() {
+      if (isGameOver || isPaused) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawPowerUpPentagons();
+      pentagon.draw();
+      circles.forEach((circle) => {
+        circle.update();
+        circle.draw();
+      });
+      stars.forEach((star) => {
+        star.draw();
+      });
+      particles.forEach((particle, index) => {
+        particle.update();
+        if (particle.life <= 0) {
+          particles.splice(index, 1);
+        } else {
+          particle.draw();
+        }
+      });
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    const iconElements = {};
+    const upgradeIconElements = {};
+
+    function createEnemyIcons() {
+      enemyControl.innerHTML = '';
+      circleConfig.forEach((config) => {
+        if (config.color === 'lightpink') return;
+        const icon = document.createElement('div');
+        icon.className = 'enemy-icon';
+        icon.dataset.color = config.color;
+        const iconCanvas = document.createElement('canvas');
+        iconCanvas.width = 60;
+        iconCanvas.height = 60;
+        const iconCtx = iconCanvas.getContext('2d');
+        icon.appendChild(iconCanvas);
+        const label = document.createElement('span');
+        label.textContent = `⚡${config.energyCost}`;
+        icon.appendChild(label);
+        circleCooldowns[config.color] = 0;
+        circleUnlocked[config.color] = false;
+
+        icon.addEventListener('click', () => {
+          if (!isGameOver && !isPaused) {
+            if (!circleUnlocked[config.color]) {
+              playDenialSound();
+              return;
+            }
+            if (energy < config.energyCost) {
+              playDenialSound();
+              return;
+            }
+            if (circleCooldowns[config.color] > 0) {
+              playDenialSound();
+              return;
+            }
+
+            energy -= config.energyCost;
+            energyDisplay.textContent = energy.toString();
+            const circle = new Circle(config);
+            circles.push(circle);
+
+            if (resistanceCircles.includes(config.color)) {
+              reduceAttributeCost('resistance', config.energyCost);
+            } else if (speedCircles.includes(config.color)) {
+              reduceAttributeCost('speed', config.energyCost);
+            } else if (frequencyCircles.includes(config.color)) {
+              reduceAttributeCost('frequency', config.energyCost);
+            }
+
+            const baseCooldown = config.cooldown;
+            const reduction = cooldownReductions[frequencyLevel];
+            const cooldownTime = baseCooldown * (1 - reduction);
+            circleCooldowns[config.color] = cooldownTime;
+            updateEnemyIcon(icon, config);
+          }
+        });
+
+        iconElements[config.color] = icon;
+        enemyControl.appendChild(icon);
+      });
+      createUpgradeIcons();
+    }
+
+    function updateEnemyIcon(icon, config) {
+      const iconCanvas = icon.querySelector('canvas');
+      const iconCtx = iconCanvas.getContext('2d');
+      const gradient = iconCtx.createLinearGradient(0, 0, iconCanvas.width, iconCanvas.height);
+      const colors = colorGradients[config.color] || [config.color, config.color];
+      gradient.addColorStop(0, colors[0]);
+      gradient.addColorStop(1, colors[1]);
+      iconCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      iconCtx.shadowBlur = 5;
+      iconCtx.beginPath();
+      iconCtx.arc(30, 30, config.size * 0.7, 0, Math.PI * 2);
+      iconCtx.fillStyle = gradient;
+      iconCtx.fill();
+      iconCtx.shadowColor = 'transparent';
+    }
+
+    function updateEnemyIcons() {
+      Object.keys(iconElements).forEach((color) => {
+        const icon = iconElements[color];
+        const config = circleConfig.find((c) => c.color === color);
+        const iconCanvas = icon.querySelector('canvas');
+        const iconCtx = iconCanvas.getContext('2d');
+
+        if (!circleUnlocked[color] && gameTime >= config.unlockTime) {
+          circleUnlocked[color] = true;
+        }
+
+        if (circleCooldowns[color] > 0) {
+          circleCooldowns[color] -= 1;
+          if (circleCooldowns[color] < 0) circleCooldowns[color] = 0;
+        }
+
+        icon.classList.remove('locked', 'no-energy');
+        if (!circleUnlocked[color]) {
+          icon.classList.add('locked');
+        } else if (energy < config.energyCost || circleCooldowns[color] > 0) {
+          icon.classList.add('no-energy');
+        }
+
+        iconCtx.clearRect(0, 0, iconCanvas.width, iconCanvas.height);
+        const gradient = iconCtx.createLinearGradient(0, 0, iconCanvas.width, iconCanvas.height);
+        const colors = colorGradients[config.color] || [config.color, config.color];
+        gradient.addColorStop(0, colors[0]);
+        gradient.addColorStop(1, colors[1]);
+        iconCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        iconCtx.shadowBlur = 5;
+        iconCtx.beginPath();
+        iconCtx.arc(30, 30, config.size * 0.7, 0, Math.PI * 2);
+        iconCtx.fillStyle = gradient;
+        iconCtx.fill();
+        iconCtx.shadowColor = 'transparent';
+
+        // Atualiza o texto do custo no label
+        const spans = icon.querySelectorAll('span');
+        if (spans.length > 0) {
+          const label = spans[spans.length - 1];
+          label.textContent = `⚡${config.energyCost}`;
+        }
+
+        let cooldownOverlay = icon.querySelector('.cooldown-overlay');
+        if (circleCooldowns[color] > 0) {
+          if (!cooldownOverlay) {
+            cooldownOverlay = document.createElement('div');
+            cooldownOverlay.className = 'cooldown-overlay';
+            icon.appendChild(cooldownOverlay);
+          }
+          cooldownOverlay.textContent = Math.ceil(circleCooldowns[color]);
+        } else {
+          if (cooldownOverlay) {
+            icon.removeChild(cooldownOverlay);
+          }
+        }
+      });
+    }
+
+    function updateCircleCosts(attribute) {
+      circleConfig.forEach((config) => {
+        if (attribute === 'resistance' && resistanceCircles.includes(config.color)) {
+          config.energyCost = Math.ceil(config.originalEnergyCost * (1 + resistanceLevel * CIRCLE_COST_INCREASE_PERCENT));
+        } else if (attribute === 'speed' && speedCircles.includes(config.color)) {
+          config.energyCost = Math.ceil(config.originalEnergyCost * (1 + speedLevel * CIRCLE_COST_INCREASE_PERCENT));
+        } else if (attribute === 'frequency' && frequencyCircles.includes(config.color)) {
+          config.energyCost = Math.ceil(config.originalEnergyCost * (1 + frequencyLevel * CIRCLE_COST_INCREASE_PERCENT));
+        }
+      });
+      updateEnemyIcons();
+    }
+
+    function createUpgradeIcons() {
+      const resistanceIcon = document.createElement('div');
+      resistanceIcon.className = 'upgrade-icon';
+      resistanceIcon.dataset.upgrade = 'resistance';
+
+      const resistanceIconElement = document.createElement('span');
+      resistanceIconElement.className = 'material-icons';
+      resistanceIconElement.textContent = 'security';
+      resistanceIcon.appendChild(resistanceIconElement);
+
+      const resistanceLabel = document.createElement('span');
+      resistanceLabel.textContent = `Nível ${resistanceLevel}`;
+      resistanceIcon.appendChild(resistanceLabel);
+
+      const resistanceCostEl = document.createElement('span');
+      resistanceCostEl.textContent = `⚡${Math.ceil(currentResistanceCost)}`;
+      resistanceIcon.appendChild(resistanceCostEl);
+
+      resistanceIcon.addEventListener('click', () => {
+        if (resistanceLevel < maxResistanceLevel && energy >= currentResistanceCost) {
+          energy -= currentResistanceCost;
+          energyDisplay.textContent = energy.toString();
+          resistanceLevel++;
+          if (resistanceLevel < maxResistanceLevel) {
+            currentResistanceCost = resistanceUpgradeCost[resistanceLevel];
+          }
+          updateCircleCosts('resistance');
+          updateUpgradeIcons();
+        }
+      });
+
+      upgradeIconElements['resistance'] = resistanceIcon;
+      enemyControl.appendChild(resistanceIcon);
+
+      const speedIcon = document.createElement('div');
+      speedIcon.className = 'upgrade-icon';
+      speedIcon.dataset.upgrade = 'speed';
+
+      const speedIconElement = document.createElement('span');
+      speedIconElement.className = 'material-icons';
+      speedIconElement.textContent = 'fast_forward';
+      speedIcon.appendChild(speedIconElement);
+
+      const speedLabel = document.createElement('span');
+      speedLabel.textContent = `Velocidade ${speedMultipliers[speedLevel]}x`;
+      speedIcon.appendChild(speedLabel);
+
+      const speedCostEl = document.createElement('span');
+      speedCostEl.textContent = `⚡${Math.ceil(currentSpeedCost)}`;
+      speedIcon.appendChild(speedCostEl);
+
+      speedIcon.addEventListener('click', () => {
+        if (speedLevel < maxSpeedLevel && energy >= currentSpeedCost) {
+          energy -= currentSpeedCost;
+          energyDisplay.textContent = energy.toString();
+          speedLevel++;
+          if (speedLevel < maxSpeedLevel) {
+            currentSpeedCost = speedUpgradeCost[speedLevel];
+          }
+          circles.forEach((circle) => {
+            circle.speed *= speedMultipliers[speedLevel] / speedMultipliers[speedLevel - 1];
+          });
+          updateCircleCosts('speed');
+          updateUpgradeIcons();
+        }
+      });
+
+      upgradeIconElements['speed'] = speedIcon;
+      enemyControl.appendChild(speedIcon);
+
+      const frequencyIcon = document.createElement('div');
+      frequencyIcon.className = 'upgrade-icon';
+      frequencyIcon.dataset.upgrade = 'frequency';
+
+      const frequencyIconElement = document.createElement('span');
+      frequencyIconElement.className = 'material-icons';
+      frequencyIconElement.textContent = 'timer';
+      frequencyIcon.appendChild(frequencyIconElement);
+
+      const frequencyLabel = document.createElement('span');
+      frequencyLabel.textContent = `Nível ${frequencyLevel}`;
+      frequencyIcon.appendChild(frequencyLabel);
+
+      const frequencyCostEl = document.createElement('span');
+      frequencyCostEl.textContent = `⚡${Math.ceil(currentFrequencyCost)}`;
+      frequencyIcon.appendChild(frequencyCostEl);
+
+      frequencyIcon.addEventListener('click', () => {
+        if (frequencyLevel < maxFrequencyLevel && energy >= currentFrequencyCost) {
+          energy -= currentFrequencyCost;
+          energyDisplay.textContent = energy.toString();
+          frequencyLevel++;
+          if (frequencyLevel < maxFrequencyLevel) {
+            currentFrequencyCost = frequencyUpgradeCost[frequencyLevel];
+          }
+          updateDifficulty();
+          updateCircleCosts('frequency');
+          updateUpgradeIcons();
+        }
+      });
+
+      upgradeIconElements['frequency'] = frequencyIcon;
+      enemyControl.appendChild(frequencyIcon);
+    }
+
+    function updateUpgradeIcons() {
+      const resistanceIcon = upgradeIconElements['resistance'];
+      const resistanceLabel = resistanceIcon.querySelector('span:nth-child(2)');
+      const resistanceCostEl = resistanceIcon.querySelector('span:nth-child(3)');
+      resistanceLabel.textContent = `Nível ${resistanceLevel}`;
+      resistanceCostEl.textContent = `⚡${resistanceLevel < maxResistanceLevel ? Math.ceil(currentResistanceCost) : '-'}`;
+      if (resistanceLevel >= maxResistanceLevel) {
+        resistanceIcon.classList.add('locked');
+      } else if (energy < currentResistanceCost) {
+        resistanceIcon.classList.add('no-energy');
+      } else {
+        resistanceIcon.classList.remove('locked', 'no-energy');
+      }
+
+      const speedIcon = upgradeIconElements['speed'];
+      const speedLabel = speedIcon.querySelector('span:nth-child(2)');
+      const speedCostEl = speedIcon.querySelector('span:nth-child(3)');
+      speedLabel.textContent = `Velocidade ${speedMultipliers[speedLevel]}x`;
+      speedCostEl.textContent = `⚡${speedLevel < maxSpeedLevel ? Math.ceil(currentSpeedCost) : '-'}`;
+      if (speedLevel >= maxSpeedLevel) {
+        speedIcon.classList.add('locked');
+      } else if (energy < currentSpeedCost) {
+        speedIcon.classList.add('no-energy');
+      } else {
+        speedIcon.classList.remove('locked', 'no-energy');
+      }
+
+      const frequencyIcon = upgradeIconElements['frequency'];
+      const frequencyLabel = frequencyIcon.querySelector('span:nth-child(2)');
+      const frequencyCostEl = frequencyIcon.querySelector('span:nth-child(3)');
+      frequencyLabel.textContent = `Nível ${frequencyLevel}`;
+      frequencyCostEl.textContent = `⚡${frequencyLevel < maxFrequencyLevel ? Math.ceil(currentFrequencyCost) : '-'}`;
+      if (frequencyLevel >= maxFrequencyLevel) {
+        frequencyIcon.classList.add('locked');
+      } else if (energy < currentFrequencyCost) {
+        frequencyIcon.classList.add('no-energy');
+      } else {
+        frequencyIcon.classList.remove('locked', 'no-energy');
+      }
+    }
+
+    player1ReadyButton.addEventListener('click', () => {
+      player1Ready = true;
+      player1Box.classList.add('ready');
+      checkBothPlayersReady();
+    });
+
+    player2ReadyButton.addEventListener('click', () => {
+      player2Ready = true;
+      player2Box.classList.add('ready');
+      checkBothPlayersReady();
+    });
+
+    function checkBothPlayersReady() {
+      if (player1Ready && player2Ready) {
+        hidePreparationScreen();
+        startGame();
+      }
+    }
+
+    function showPreparationScreen() {
+      preparationScreen.style.display = 'flex';
+      player1Ready = false;
+      player2Ready = false;
+      player1Box.classList.remove('ready');
+      player2Box.classList.remove('ready');
+    }
+
+    function hidePreparationScreen() {
+      preparationScreen.style.display = 'none';
+    }
+
+    function startGame() {
+      resetGameVariables();
+      const initialLevel = difficultyLevels[0];
+      currentSpawnInterval = initialLevel.interval;
+      currentCirclesAtOnce = initialLevel.circlesAtOnce;
+      spawnIntervalElement.textContent = currentSpawnInterval.toString();
+      spawnIntervalId = setInterval(spawnCircles, currentSpawnInterval);
+      starSpawnIntervalId = setInterval(spawnStar, powerUpConfig.starInterval * 1000);
+      energyRegenIntervalId = setInterval(regenerateEnergy, 1000);
+      updateInfoIntervalId = setInterval(updateInfo, 1000);
+      isPaused = false;
+      animate();
+    }
+
+    createEnemyIcons();
+    updateUpgradeIcons();
+    showPreparationScreen();
+  </script>
+</body>
+</html>
